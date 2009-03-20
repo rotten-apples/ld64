@@ -25,14 +25,15 @@
 #ifndef __EXECUTABLE_MACH_O__
 #define __EXECUTABLE_MACH_O__
 
+#include <signal.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <fcntl.h>
 #include <sys/time.h>
-#include <uuid/uuid.h>
+#include "uuid.h"
 #include <mach/i386/thread_status.h>
 #include <mach/ppc/thread_status.h>
-#include <CommonCrypto/CommonDigest.h>
+#include <openssl/md5.h>
 
 #include <vector>
 #include <algorithm>
@@ -4512,19 +4513,19 @@ uint64_t Writer<A>::writeAtoms()
 
 		// update content based UUID
 		if ( fOptions.getUUIDMode() == Options::kUUIDContent ) {
-			uint8_t digest[CC_MD5_DIGEST_LENGTH];
+			uint8_t digest[MD5_DIGEST_LENGTH];
 			if ( streaming ) {
 				// if output file file did not fit in memory, re-read file to generate md5 hash
 				uint32_t kMD5BufferSize = 16*1024;
 				uint8_t* md5Buffer = (uint8_t*)::malloc(kMD5BufferSize);
 				if ( md5Buffer != NULL ) {
-					CC_MD5_CTX md5State;
-					CC_MD5_Init(&md5State);
+					MD5_CTX md5State;
+					MD5_Init(&md5State);
 					::lseek(fd, 0, SEEK_SET);
 					ssize_t len;
 					while ( (len = ::read(fd, md5Buffer, kMD5BufferSize)) > 0 ) 
-						CC_MD5_Update(&md5State, md5Buffer, len);
-					CC_MD5_Final(digest, &md5State);
+						MD5_Update(&md5State, md5Buffer, len);
+					MD5_Final(digest, &md5State);
 					::free(md5Buffer);
 				}
 				else {
@@ -4540,10 +4541,10 @@ uint64_t Writer<A>::writeAtoms()
 				// if output file fit in memory, just genrate an md5 hash in memory
 			#if 1
 				// temp hack for building on Tiger
-				CC_MD5_CTX md5State;
-				CC_MD5_Init(&md5State);
-				CC_MD5_Update(&md5State, wholeBuffer, size);
-				CC_MD5_Final(digest, &md5State);
+				MD5_CTX md5State;
+				MD5_Init(&md5State);
+				MD5_Update(&md5State, wholeBuffer, size);
+				MD5_Final(digest, &md5State);
 			#else
 				CC_MD5(wholeBuffer, size, digest);
 			#endif

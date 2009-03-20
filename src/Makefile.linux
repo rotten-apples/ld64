@@ -1,0 +1,42 @@
+NULL =
+
+CFILES_ld64 = \
+	arc4random-fbsd.c \
+	debugline.c \
+	gen_uuid-uuid.c \
+	ld_version.c \
+	pack-uuid.c \
+	strlcpy-fbsd.c \
+	unpack-uuid.c \
+	$(NULL)
+COBJS_ld64 = $(CFILES_ld64:.c=.o)
+
+CCFILES_ld64 = \
+	Options.cpp \
+	ld.cpp \
+	$(NULL)
+CCOBJS_ld64 = $(CCFILES_ld64:.cpp=.o)
+
+CCFILES_rebase = rebase.cpp
+CCOBJS_rebase = $(CCFILES_rebase:.cpp=.o)
+
+XCFLAGS = -D__LITTLE_ENDIAN__ -I../../usr_include -I.
+
+all: ld64 rebase
+
+ld64: $(COBJS_ld64) $(CCOBJS_ld64)
+	$(CXX) -o $@ $^ -lcrypto
+
+rebase: $(CCOBJS_rebase)
+	$(CXX) -o $@ $^
+
+.c.o:
+	$(CC) $(CFLAGS) $(XCFLAGS) -c -o $@ $<
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(XCFLAGS) -c -o $@ $<
+
+clean:
+	-rm -rf \
+	  ld64 $(COBJS_ld64) $(CCOBJS_ld64) \
+	  rebase $(CCOBJS_rebase)

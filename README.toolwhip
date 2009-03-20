@@ -1,0 +1,14 @@
+Home: http://www.opensource.apple.com/darwinsource/
+URL: http://www.opensource.apple.com/darwinsource/tarballs/apsl/ld64-85.2.1.tar.gz
+Version: ld64 85.2.1 (Xcode Tools 3.1.2)
+License: APSL
+License File: APPLE_LICENSE
+Local Vendor Branch: http://toolwhip.googlecode.com/svn/vendor/ld64
+Local Trunk: http://toolwhip.googlecode.com/svn/trunk/ld64
+
+Description:
+ld64 is the Mac OS X linker.
+
+Local Modifications:
+Only this file, README.toolwhip, has been added to the local vendor branch.
+All other local modifications are made on the local trunk.

@@ -625,7 +625,11 @@ void Rebaser<x86_64>::setRelocBase()
 static void copyFile(const char* srcFile, const char* dstFile)
 {
 	// open files 
+#ifdef O_DIRECT
+	int src = open(srcFile, O_RDONLY | O_DIRECT);	
+#else
 	int src = open(srcFile, O_RDONLY);	
+#endif
 	if ( src == -1 )
 		throwf("can't open file %s, errno=%d", srcFile, errno);
 	struct stat stat_buf;
@@ -639,7 +643,9 @@ static void copyFile(const char* srcFile, const char* dstFile)
 		throwf("can't create temp file %s, errnor=%d", dstFile, errno);
 
 	// mark source as "don't cache"
+#ifdef F_NOCACHE
 	(void)fcntl(src, F_NOCACHE, 1);
+#endif
 	// we want to cache the dst because we are about to map it in and modify it
 	
 	// copy permission bits
@@ -653,10 +659,8 @@ static void copyFile(const char* srcFile, const char* dstFile)
 	const uint32_t kBufferSize = 128*1024;
 	static uint8_t* buffer = NULL;
 	if ( buffer == NULL ) {
-		vm_address_t addr = 0;
-		if ( vm_allocate(mach_task_self(), &addr, kBufferSize, true /*find range*/) == KERN_SUCCESS )
-			buffer = (uint8_t*)addr;
-		else
+		buffer = (uint8_t*)malloc(kBufferSize);
+		if (!buffer)
 			throw "can't allcoate copy buffer";
 	}
 	while ( (len = read(src, buffer, kBufferSize)) > 0 ) {
