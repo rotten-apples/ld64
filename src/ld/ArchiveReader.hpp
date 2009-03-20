@@ -43,6 +43,11 @@
 #if LTO_SUPPORT
 	#include "LTOReader.hpp"
 #endif
+
+/* From cctools-698.1/include/stuff/ofile.h */
+#ifndef AR_EFMT1
+#define AR_EFMT1	"#1/"		/* extended format #1 */
+#endif
  
 namespace archive {
 

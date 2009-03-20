@@ -30,10 +30,10 @@
 #include <fcntl.h>
 #include <vector>
 
-#include "configure.h"
 #include "Options.h"
 #include "Architectures.hpp"
 #include "MachOFileAbstraction.hpp"
+#include "strl.h"
 
 extern void printLTOVersion(Options &opts);
 
@@ -97,8 +97,15 @@ Options::Options(int argc, const char* argv[])
 	  fMinimumHeaderPad(32), fSegmentAlignment(4096), 
 	  fCommonsMode(kCommonsIgnoreDylibs),  fUUIDMode(kUUIDContent), fLocalSymbolHandling(kLocalSymbolsAll), fWarnCommons(false), 
 	  fVerbose(false), fKeepRelocations(false), fWarnStabs(false),
-	  fTraceDylibSearching(false), fPause(false), fStatistics(false), fPrintOptions(false),
-	  fSharedRegionEligible(false), fPrintOrderFileStatistics(false),  
+	  fTraceDylibSearching(false), fPause(false), 
+#ifdef GENUINE_MACH
+	  fStatistics(false),
+#endif /* GENUINE_MACH */
+	  fPrintOptions(false),
+	  fSharedRegionEligible(false),
+#ifdef GENUINE_MACH
+	  fPrintOrderFileStatistics(false),  
+#endif /* GENUINE_MACH */
 	  fReadOnlyx86Stubs(false), fPositionIndependentExecutable(false), 
 	  fDisablePositionIndependentExecutable(false), fMaxMinimumHeaderPad(false),
 	  fDeadStripDylibs(false),  fAllowTextRelocs(false), fWarnTextRelocs(false), 
@@ -1841,9 +1848,11 @@ void Options::parse(int argc, const char* argv[])
 			else if ( strcmp(arg, "-order_file") == 0 ) {
 				parseOrderFile(argv[++i], false);
 			}
+#ifdef GENUINE_MACH
 			else if ( strcmp(arg, "-order_file_statistics") == 0 ) {
 				fPrintOrderFileStatistics = true;
 			}
+#endif /* GENUINE_MACH */
 			// ??? Deprecate segcreate.
 			// -sectcreate puts whole files into a section in the output.
 			else if ( (strcmp(arg, "-sectcreate") == 0) || (strcmp(arg, "-segcreate") == 0) ) {
@@ -2352,9 +2361,11 @@ void Options::parse(int argc, const char* argv[])
 			else if ( strcmp(arg, "-pause") == 0 ) {
 				fPause = true;
 			}
+#ifdef GENUINE_MACH
 			else if ( strcmp(arg, "-print_statistics") == 0 ) {
 				fStatistics = true;
 			}
+#endif /* GENUINE_MACH */
 			else if ( strcmp(arg, "-d") == 0 ) {
 				fReaderOptions.fMakeTentativeDefinitionsReal = true;
 			}
@@ -2754,8 +2765,10 @@ void Options::parsePreCommandLineEnvironmentSettings()
 	if (fReaderOptions.fTraceDylibs || fReaderOptions.fTraceArchives)
 		fReaderOptions.fTraceOutputFile = getenv("LD_TRACE_FILE");
 
+#ifdef GENUINE_MACH
 	if (getenv("LD_PRINT_ORDER_FILE_STATISTICS") != NULL)
 		fPrintOrderFileStatistics = true;
+#endif /* GENUINE_MACH */
 
 	if (getenv("LD_SPLITSEGS_NEW_LIBRARIES") != NULL)
 		fSplitSegs = true;

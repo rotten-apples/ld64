@@ -1,0 +1,2 @@
+all clean: ld
+	@for i in $^ ; do $(MAKE) -C $${i} -f Makefile.linux $@ ; done

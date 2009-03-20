@@ -39,6 +39,7 @@
 #include "ObjectFile.h"
 #include "dwarf2.h"
 #include "debugline.h"
+#include "strl.h"
 
 #include <libunwind/DwarfInstructions.hpp>
 #include <libunwind/AddressSpace.hpp>

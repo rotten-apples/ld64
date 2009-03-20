@@ -20,11 +20,6 @@
  *
  * @APPLE_LICENSE_HEADER_END@
  */
- 
-// start temp HACK for cross builds
-extern "C" double log2 ( double );
-#define __MATH__
-// end temp HACK for cross builds
 
 
 #include <stdlib.h>
@@ -51,9 +46,7 @@ extern "C" double log2 ( double );
 #include <algorithm>
 #include <ext/hash_map>
 #include <dlfcn.h>
-#include <AvailabilityMacros.h>
 
-#include "configure.h"
 #include "Options.h"
 
 #include "ObjectFile.h"
@@ -372,10 +365,14 @@ private:
 	void				markLive(ObjectFile::Atom& atom, Linker::WhyLiveBackChain* previous);
 	void				collectStabs(ObjectFile::Reader* reader, std::map<const class ObjectFile::Atom*, uint32_t>& atomOrdinals);
 	void				synthesizeDebugNotes(std::vector<class ObjectFile::Atom*>& allAtomsByReader);
+#ifdef GENUINE_MACH
 	void				printStatistics();
 	void				printTime(const char* msg, uint64_t partTime, uint64_t totalTime);
+#endif /* GENUINE_MACH */
 	char*				commatize(uint64_t in, char* out);
+#ifdef GENUINE_MACH
 	void				getVMInfo(vm_statistics_data_t& info);
+#endif /* GENUINE_MACH */
 	cpu_type_t			inferArchitecture();
 	void				checkDylibClientRestrictions(ObjectFile::Reader* reader);
 	void				logDylib(ObjectFile::Reader* reader, bool indirect);
@@ -490,6 +487,7 @@ private:
 	uint64_t											fOutputFileSize;
 	uint64_t											fTotalZeroFillSize;
 	uint64_t											fTotalSize;
+#ifdef GENUINE_MACH
 	uint64_t											fStartTime;
 	uint64_t											fStartCreateReadersTime;
 	uint64_t											fStartCreateWriterTime;
@@ -499,6 +497,7 @@ private:
 	uint64_t											fStartDebugTime;
 	uint64_t											fStartWriteTime;
 	uint64_t											fEndTime;
+#endif /* GENUINE_MACH */
 	uint64_t											fTotalObjectSize;
 	uint64_t											fTotalArchiveSize;
 	uint32_t											fTotalObjectLoaded;
@@ -521,9 +520,11 @@ Linker::Linker(int argc, const char* argv[])
 	  fCurrentObjCConstraint(ObjectFile::Reader::kObjcNone), fCurrentCpuConstraint(ObjectFile::Reader::kCpuAny),
 	  fObjcReplacmentClasses(false), fAllDirectDylibsLoaded(false)
 {
+#ifdef GENUINE_MACH
 	fStartTime = mach_absolute_time();
 	if ( fOptions.printStatistics() )
 		getVMInfo(fStartVMInfo);
+#endif /* GENUINE_MACH */
 
 	fArchitecture = fOptions.architecture();
 	if ( fArchitecture == 0 ) {
@@ -664,7 +665,9 @@ private:
 
 void Linker::loadAndResolve()
 {
+#ifdef GENUINE_MACH
 	fStartLoadAndResolveTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	if ( fOptions.deadStrip() == Options::kDeadStripOff ) {
 		// without dead-code-stripping:
 		// find atoms to resolve all undefines
@@ -843,12 +846,15 @@ void Linker::link()
 	this->writeDotOutput();
 	this->collectDebugInfo();
 	this->writeOutput();
+#ifdef GENUINE_MACH
 	this->printStatistics();
+#endif /* GENUINE_MACH */
 
 	if ( fOptions.pauseAtEnd() )
 		sleep(10);
 }
 
+#ifdef GENUINE_MACH
 void Linker::printTime(const char* msg, uint64_t partTime, uint64_t totalTime)
 {
 	static uint64_t sUnitsPerSecond = 0;
@@ -874,6 +880,7 @@ void Linker::printTime(const char* msg, uint64_t partTime, uint64_t totalTime)
 		fprintf(stderr, "%s: %u.%u seconds (%u.%u%%)\n", msg, seconds, secondsTimeTen-seconds*10, percent, percentTimesTen-percent*10);
 	}
 }
+#endif /* GENUINE_MACH */
 
 char* Linker::commatize(uint64_t in, char* out)
 {
@@ -891,6 +898,7 @@ char* Linker::commatize(uint64_t in, char* out)
 	return result;
 }
 
+#ifdef GENUINE_MACH
 void Linker::getVMInfo(vm_statistics_data_t& info)
 {
 	mach_msg_type_number_t count = sizeof(vm_statistics_data_t) / sizeof(natural_t);
@@ -927,6 +935,7 @@ void Linker::printStatistics()
 		fprintf(stderr, "wrote output file            totaling %15s bytes\n", commatize(fOutputFileSize, temp));
 	}
 }
+#endif /* GENUINE_MACH */
 
 inline void Linker::addAtom(ObjectFile::Atom& atom)
 {
@@ -1084,7 +1093,9 @@ void Linker::logArchive(ObjectFile::Reader* reader)
 
 void Linker::buildAtomList()
 {
+#ifdef GENUINE_MACH
 	fStartBuildAtomsTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	// add initial undefines from -u option
 	std::vector<const char*>& initialUndefines = fOptions.initialUndefines();
 	for (std::vector<const char*>::iterator it=initialUndefines.begin(); it != initialUndefines.end(); it++) {
@@ -1845,6 +1856,9 @@ void Linker::processDTrace()
 	if ( fOptions.outputKind() == Options::kObjectFile )
 		return;
 
+#ifndef DARWIN_RUNTIME
+	return;
+#else
 	// scan all atoms looking for dtrace probes
 	std::vector<DTraceProbeInfo>						probeSites;
 	std::vector<DTraceProbeInfo>						isEnabledSites;
@@ -2004,6 +2018,7 @@ void Linker::processDTrace()
 			throw "error creating dtrace DOF section";
 		}
 	}
+#endif /* DARWIN_RUNTIME */
 }
 
 
@@ -2124,7 +2139,9 @@ void Linker::sortSections()
 //
 void Linker::sortAtoms()
 {
+#ifdef GENUINE_MACH
 	fStartSortTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	// if -order_file is used, build map of atom ordinal overrides
 	std::map<const ObjectFile::Atom*, uint32_t>* ordinalOverrideMap = NULL;
 	std::map<const ObjectFile::Atom*, uint32_t> theOrdinalOverrideMap;
@@ -3070,7 +3087,9 @@ void Linker::synthesizeDebugNotes(std::vector<class ObjectFile::Atom*>& allAtoms
 void Linker::collectDebugInfo()
 {
 	std::map<const class ObjectFile::Atom*, uint32_t>	atomOrdinals;
+#ifdef GENUINE_MACH
 	fStartDebugTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	if ( fOptions.readerOptions().fDebugInfoStripping != ObjectFile::ReaderOptions::kDebugInfoNone ) {
 
 		// determine mixture of stabs and dwarf
@@ -3178,7 +3197,9 @@ void Linker::writeOutput()
 	if ( fOptions.forceCpuSubtypeAll() )
 		fCurrentCpuConstraint = ObjectFile::Reader::kCpuAny;
 
+#ifdef GENUINE_MACH
 	fStartWriteTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	// tell writer about each segment's atoms
 	fOutputFileSize = fOutputFile->write(fAllAtoms, fStabs, this->entryPoint(true), 
 											fCreateUUID, fCanScatter, 
@@ -3478,7 +3499,9 @@ void Linker::processDylibs()
 
 void Linker::createReaders()
 {
+#ifdef GENUINE_MACH
 	fStartCreateReadersTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 	std::vector<Options::FileInfo>& files = fOptions.getInputFiles();
 	const int count = files.size();
 	if ( count == 0 )
@@ -3706,7 +3729,9 @@ void Linker::logTraceInfo (const char* format, ...)
 
 void Linker::createWriter()
 {
+#ifdef GENUINE_MACH
 	fStartCreateWriterTime = mach_absolute_time();
+#endif /* GENUINE_MACH */
 
 	// make a vector out of all required dylibs in fDylibMap
 	std::vector<ExecutableFile::DyLibUsed>	dynamicLibraries;
