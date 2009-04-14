@@ -27,6 +27,7 @@
 
 
 #include <stdint.h>
+#include <string.h>
 #include <mach/machine.h>
 
 #include <vector>

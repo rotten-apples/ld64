@@ -28,6 +28,8 @@
 #include <mach/vm_prot.h>
 #include <mach-o/dyld.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <stdarg.h>
 #include <vector>
 
 #include "Options.h"
