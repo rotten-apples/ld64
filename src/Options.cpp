@@ -27,6 +27,8 @@
 #include <sys/stat.h>
 #include <mach/vm_prot.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <stdarg.h>
 #include <vector>
 
 #include "Options.h"
