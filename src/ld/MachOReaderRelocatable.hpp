@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 
+#include <cstdio>
 #include <vector>
 #include <set>
 #include <algorithm>

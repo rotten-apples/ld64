@@ -35,6 +35,7 @@
 #include <mach/ppc/thread_status.h>
 #include <openssl/md5.h>
 
+#include <cstring>
 #include <vector>
 #include <algorithm>
 #include <map>

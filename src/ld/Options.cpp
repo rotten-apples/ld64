@@ -31,6 +31,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <vector>
+#include <cstdio>
 
 #include "Options.h"
 #include "Architectures.hpp"
