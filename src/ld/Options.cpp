@@ -3595,8 +3595,8 @@ void Options::checkForClassic(int argc, const char* argv[])
 	
 	// build command line buffer in case ld crashes
 	for(int i=1; i < argc; ++i) {
-		strlcat(crashreporterBuffer, argv[i], 1000);
-		strlcat(crashreporterBuffer, " ", 1000);
+		strcat(crashreporterBuffer, argv[i]);
+		strcat(crashreporterBuffer, " ");
 	}
 
 	for(int i=0; i < argc; ++i) {
