@@ -3228,9 +3228,11 @@ const char* Linker::fileArch(const void* p)
 	if ( result != NULL  )
 		 return result;
 		 
+#if LTO_SUPPORT
 	result = lto::Reader::fileKind(bytes);
 	if ( result != NULL  )
 		 return result;
+#endif
 	
 	return "unsupported file format";	 
 }
