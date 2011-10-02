@@ -3682,22 +3682,6 @@ void Options::checkForClassic(int argc, const char* argv[])
 
 void Options::gotoClassicLinker(int argc, const char* argv[])
 {
-	argv[0] = "ld_classic";
-	char rawPath[PATH_MAX];
-	char path[PATH_MAX];
-	uint32_t bufSize = PATH_MAX;
-	if ( _NSGetExecutablePath(rawPath, &bufSize) != -1 ) {
-		if ( realpath(rawPath, path) != NULL ) {
-			char* lastSlash = strrchr(path, '/');
-			if ( lastSlash != NULL ) {
-				strcpy(lastSlash+1, "ld_classic");
-				argv[0] = path;
-				execvp(path, (char**)argv);
-			}
-		}
-	}
-	// in case of error in above, try searching for ld_classic via PATH
-	execvp(argv[0], (char**)argv);
-	fprintf(stderr, "can't exec ld_classic\n");
+	fprintf(stderr, "won't exec ld_classic\n");
 	exit(1);
 }
