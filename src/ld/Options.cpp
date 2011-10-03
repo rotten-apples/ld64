@@ -2191,7 +2191,7 @@ void Options::parse(int argc, const char* argv[])
 			else if ( strcmp(arg, "-macosx_version_min") == 0 ) {
 				setMacOSXVersionMin(argv[++i]);
 			}
-			else if ( strcmp(arg, "-iphoneos_version_min") == 0 ) {
+			else if ( (strcmp(arg, "-aspen_version_min") == 0) || (strcmp(arg, "-iphone_version_min") == 0) || (strcmp(arg, "-iphoneos_version_min") == 0) ) {
 				setIPhoneVersionMin(argv[++i]);
 			}
 			else if ( strcmp(arg, "-multiply_defined") == 0 ) {
